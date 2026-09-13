@@ -209,6 +209,93 @@ int validate_instruction(const ParsedInstruction *instruction)
         return 1;
     }
 
+    //0x6
+    if(strcmp(instruction->name, "LOAD_INSTR") == 0)
+    {
+        int opcode, dst, src, src2, unit;
+
+        if(instruction->arg_count < 2)
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[0], &value) || value < 0 || value >= PROG_DEPTH)
+        {
+            return 0;
+        }
+
+        opcode = parse_pipeline(instruction->args[1]);
+        if(opcode == -1)
+        {
+            return 0;
+        }
+
+        if(opcode == PIPE_NOP || opcode == PIPE_HALT)
+        {
+            if(instruction->arg_count != 2)
+            {
+                return 0;
+            }
+            return 1;
+        }
+
+        if(opcode == PIPE_COMPUTE)
+        {
+            if(instruction->arg_count != 5)
+            {
+                return 0;
+            }
+
+            dst = parse_register(instruction->args[2]);
+            src = parse_register(instruction->args[3]);
+            unit = parse_unit_id(instruction->args[4]);
+
+            if(dst == -1 || src == -1 || unit == -1)
+            {
+                return 0;
+            }
+
+            return 1;
+        }
+
+        if(opcode == PIPE_STORE)
+        {
+            if(instruction->arg_count != 4)
+            {
+                return 0;
+            }
+
+            dst = parse_register(instruction->args[2]);
+            src = parse_register(instruction->args[3]);
+
+            if(dst == -1 || src == -1)
+            {
+                return 0;
+            }
+            return 1;
+        }
+
+        if(opcode == PIPE_ADD)
+        {
+            if(instruction->arg_count != 5)
+            {
+                return 0;
+            }
+
+            dst = parse_register(instruction->args[2]);
+            src = parse_register(instruction->args[3]);
+            src2 = parse_register(instruction->args[4]);
+
+            if(dst == -1 || src == -1 || src2 == -1)
+            {
+                return 0;
+            }
+
+            return 1;
+        }
+        return 0;
+    }
+
     //0x7
     if(strcmp(instruction->name, "RUN_PROGRAM") == 0)
     {
