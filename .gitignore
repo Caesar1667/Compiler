@@ -1,0 +1,5 @@
+*.exe
+*.op
+.vscode/
+test/
+
