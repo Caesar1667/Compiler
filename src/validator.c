@@ -121,6 +121,8 @@ int parse_int(const char *token, int *value)
 
 int validate_instruction(const ParsedInstruction *instruction)
 {
+    int value;
+
     if(instruction == NULL)
     {
         return 0;
@@ -133,20 +135,19 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(instruction->args[0] < 0 || instruction->args[0] >= ROWS)
+        if(!parse_int(instruction->args[0], &value) || value < 0 || value >= ROWS)
+        {
+            return 0;
+        }
+        if(!parse_int(instruction->args[1], &value) || value < 0 || value >= COLS)
+        {
+            return 0;
+        }
+        if(!parse_int(instruction->args[2], &value) || value < -128 || value >= 127)
         {
             return 0;
         }
 
-        if(instruction->args[1] < 0 || instruction->args[1] >= COLS)
-        {
-            return 0;
-        }
-
-        if(instruction->args[2] < -128 || instruction->args[2] > 127)
-        {
-            return 0;
-        }
         return 1;
     }
 
@@ -157,15 +158,16 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(instruction->args[0] < 0 || instruction->args[0] >= ROWS)
+        if(!parse_int(instruction->args[0], &value) || value < 0 || value >= ROWS) 
         {
             return 0;
         }
 
-        if(instruction->args[1] < -128 || instruction->args[1] > 127)
+        if(!parse_int(instruction->args[1], &value) || value < -128 || value >= 127) 
         {
             return 0;
         }
+
         return 1;
     }
 
@@ -176,7 +178,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(instruction->args[0] != 0 && instruction->args[0] != 1)
+        if(!parse_int(instruction->args[0], &value) || (value != 0 && value != 1))
         {
             return 0;
         }
@@ -200,7 +202,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(instruction->args[0] != 0 && instruction->args[0] != 1)
+        if(!parse_int(instruction->args[0], &value) || (value != 0 && value != 1))
         {
             return 0;
         }
@@ -215,7 +217,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(instruction->args[0] < 0 || instruction->args[0] >31)
+        if(!parse_int(instruction->args[0], &value) || (value < 0 || value > 31))
         {
             return 0;
         }
@@ -230,7 +232,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(instruction->args[0] < 0 || instruction->args[0] > 31)
+        if(!parse_int(instruction->args[0], &value) || (value < 0 || value > 31))
         {
             return 0;
         }
