@@ -105,6 +105,26 @@ int parse_unit_id(const char *token)
     return -1;
 }
 
+int parse_ssm_coef_selector(const char *token)
+{
+    if(strcmp(token, "ABAR") == 0)
+    {
+        return 0;
+    }else if(strcmp(token, "BBAR") == 0)
+    {
+        return 1;
+    }else if(strcmp(token, "C") == 0)
+    {
+        return 2;
+    }else if(strcmp(token, "D") == 0)
+    {
+        return 3;
+    }else
+    {
+        return -1;
+    }
+}
+
 int parse_int(const char *token, int *value)
 {
     char *end;
@@ -325,7 +345,36 @@ int validate_instruction(const ParsedInstruction *instruction)
         }
         return 1;
     }
+
     
+    //0x9
+    if(strcmp(instruction->name, "LOAD_SSM_COEF"))
+    {
+        if(instruction->arg_count != 3)
+        {
+            return 0;
+        }
+
+        int coef_selector = parse_ssm_coef_selector(instruction->args[0]);
+        int channel, coefficient;
+        if(coef_selector == -1)
+        {
+            return -1;
+        }
+
+        if(!parse_int(instruction->args[1], &channel) || channel < 0 || channel > 31)
+        {
+            return -1;
+        }
+
+        if(!parse_int(instruction->args[2], &coefficient) || coefficient < -32768 || coefficient > 32767)
+        {
+            return -1;
+        }
+
+        return 1;
+    }
+
     //0xA
     if(strcmp(instruction->name, "CLEAR_SSM_STATE") == 0)
     {

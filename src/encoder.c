@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "encoder.h"
 #include "opcodes.h"
+#include "validator.h"
 
 uint32_t encode_load_weight(int row, int col, int data)
 {
@@ -99,7 +100,7 @@ uint32_t encode_run_program(int prog_len)
     uint32_t instruction = 0;
 
     instruction |= ((uint32_t)RUN_PROGRAM << 28);
-    instruction |= ((uint32_t)prog_len & 0xFF);
+    instruction |= (uint32_t)prog_len;
 
     return instruction;
 }
@@ -111,6 +112,18 @@ uint32_t encode_set_rescale(int shift)
 
     instruction |= ((uint32_t)SET_RESCALE << 28);
     instruction |= ((uint32_t)shift & 0x1F);
+
+    return instruction;
+}
+
+//0x9
+uint32_t encode_load_ssm_coef(int coef_selector, int channel, int coefficient)
+{
+    uint32_t instruction = 0;
+    instruction |= ((uint32_t)LOAD_SSM_COEF << 28);
+    instruction |= ((uint32_t)coef_selector << 26);
+    instruction |= ((uint32_t)channel << 21);
+    instruction |= ((uint32_t)coefficient & 0xFFFFF);
 
     return instruction;
 }
@@ -331,6 +344,19 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
         *encoded = encode_set_rescale
                 (
                     args[0]
+                );
+        return 1;
+    }
+
+    if(strcmp(instruction->name, "LOAD_SSM_COEF") == 0)
+    {
+        int coeff_selector = parse_ssm_coef_selector(instruction->args[0]);
+
+        *encoded = encode_load_ssm_coef
+                (
+                    coeff_selector,
+                    args[1],
+                    args[2]
                 );
         return 1;
     }

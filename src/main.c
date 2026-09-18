@@ -6,6 +6,23 @@
 #include "validator.h"
 #include "encoder.h"
 
+void binary_display(uint32_t value)
+{
+    int i;
+
+    for(i = 31; i >= 0; i--)
+    {
+        printf("%d", (value >> i) & 1);
+
+        if(i % 4 == 0 && i != 0)
+        {
+            printf(" ");
+        }
+    }
+
+    printf("\n");
+}
+
 int main(int argc, char *argv[])
 {
     FILE *file;
@@ -53,7 +70,10 @@ int main(int argc, char *argv[])
         }
 
         printf("Instruction: %s\n", instruction.name);
-        printf("Encoded:    0x%08X\n\n", encoded);
+        printf("Hexadecimal:    0x%08X\n", encoded);
+        printf("Binary:    ");
+        binary_display(encoded);
+        printf("\n");
         
     }
 

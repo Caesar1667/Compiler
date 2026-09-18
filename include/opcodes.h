@@ -10,7 +10,7 @@
 #define LOAD_INSTR          0x6
 #define RUN_PROGRAM         0x7
 #define SET_RESCALE         0x8
-#define LOAD_SSM_COEFF      0x9
+#define LOAD_SSM_COEF       0x9
 #define CLEAR_SSM_STATE     0xA
 #define SET_ROPE_POS        0xB
 #define LOAD_BN_PARAM       0xC
