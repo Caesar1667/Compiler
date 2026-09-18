@@ -5,8 +5,8 @@
 int parse_instruction(const char *line, ParsedInstruction *instruction)
 {
     char buffer[256];
-    char *open_paren;
-    char *close_paren;
+    char *name;
+    char *args;
     char *token;
 
     if(line == NULL || instruction == NULL)
@@ -14,46 +14,30 @@ int parse_instruction(const char *line, ParsedInstruction *instruction)
         return 0;
     }
 
-    memset(instruction, 0, sizeof(ParsedInstruction));
-
-    strncpy(buffer, line, sizeof(buffer) - 1);
-    buffer[sizeof(buffer) - 1] = '\0';
-
-    open_paren = strchr(buffer, '(');
-
-    if(open_paren == NULL)
+    strcpy(buffer, line);
+    instruction->arg_count = 0;
+    name = strtok(buffer, "(");
+    if(name == NULL)
     {
         return 0;
     }
 
-    close_paren = strchr(buffer, ')');
-
-    if(close_paren == NULL)
+    strcpy(instruction->name, name);
+    args = strtok(NULL, ")");
+    if(args == NULL)
     {
-        return 0;
+        return 1;
     }
 
-    *open_paren = '\0';
-    if(sscanf(buffer, "%31s", instruction->name) != 1)
-    {
-        return 0;
-    }
+    token = strtok(args, ",");
 
-    *close_paren = '\0';
-    token = strtok(open_paren + 1, ",");
-
-    while(token != NULL)
+    while(token != NULL && instruction->arg_count < MAX_ARGS)
     {
-        if(instruction->arg_count >= MAX_ARGS)
+        while(*token == ' ')
         {
-            return 0;
+            token++;
         }
-
-        if(sscanf(token, "%d", &instruction->args[instruction->arg_count]) != 1)
-        {
-            return 0;
-        }
-
+        strcpy(instruction->args[instruction->arg_count], token);
         instruction->arg_count++;
         token = strtok(NULL, ",");
     }

@@ -8,7 +8,7 @@
 typedef struct 
 {
     char name[MAX_INSTRUCTION_NAME];
-    int args[MAX_ARGS][MAX_ARG_LENGTH];
+    char args[MAX_ARGS][MAX_ARG_LENGTH];
     int arg_count;
 } ParsedInstruction;
 

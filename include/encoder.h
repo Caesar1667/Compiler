@@ -13,6 +13,7 @@ uint32_t encode_load_instr(int address, int opcode, int dst_reg, int src_reg, in
 uint32_t encode_pipeline_instr(int opcode, int dst_reg, int src_reg, int src2_reg, int unit_id);
 uint32_t encode_run_program(int prog_len);
 uint32_t encode_set_rescale(int shift); //0x8
+uint32_t encode_load_ssm_coef(int coef_selector, int channel, int coefficient); //0x9
 uint32_t encode_clear_ssm_state(void); //0xA
 uint32_t encode_set_quant_params(int scale, int shift, int zero_point); //0xD
 uint32_t encode_flush_weights(void); //0xF
