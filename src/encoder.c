@@ -120,6 +120,7 @@ uint32_t encode_set_rescale(int shift)
 uint32_t encode_load_ssm_coef(int coef_selector, int channel, int coefficient)
 {
     uint32_t instruction = 0;
+
     instruction |= ((uint32_t)LOAD_SSM_COEF << 28);
     instruction |= ((uint32_t)coef_selector << 26);
     instruction |= ((uint32_t)channel << 21);
@@ -136,6 +137,12 @@ uint32_t encode_clear_ssm_state(void)
     instruciton |= ((uint32_t)CLEAR_SSM_STATE << 28);
     
     return instruciton;
+}
+
+//0xB
+uint32_t encode_set_rope_pos(int position)
+{
+    
 }
 
 //0xD
@@ -350,11 +357,11 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
 
     if(strcmp(instruction->name, "LOAD_SSM_COEF") == 0)
     {
-        int coeff_selector = parse_ssm_coef_selector(instruction->args[0]);
+        // int coeff_selector = parse_ssm_coef_selector(instruction->args[0]);
 
         *encoded = encode_load_ssm_coef
                 (
-                    coeff_selector,
+                    args[0],
                     args[1],
                     args[2]
                 );

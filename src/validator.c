@@ -348,7 +348,7 @@ int validate_instruction(const ParsedInstruction *instruction)
 
     
     //0x9
-    if(strcmp(instruction->name, "LOAD_SSM_COEF"))
+    if(strcmp(instruction->name, "LOAD_SSM_COEF") == 0)
     {
         if(instruction->arg_count != 3)
         {
