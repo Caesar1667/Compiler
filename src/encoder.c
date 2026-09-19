@@ -170,8 +170,20 @@ uint32_t encode_set_quant_params(int scale, int shift, int zero_point)
     instruction |= ((uint32_t)SET_QUANT_PARAMS << 28);
     instruction |= ((uint32_t)scale << 13);
     instruction |= ((uint32_t)shift << 8);
-    instruction |= ((uint32_t)zero_point << 0);
+    instruction |= ((uint32_t)zero_point & 0xFF);
     
+    return instruction;
+}
+
+//0xE
+uint32_t encode_load_weight_burst(int address, int weight)
+{
+    uint32_t instruction = 0;
+
+    instruction |= ((uint32_t)LOAD_WEIGHT_BURST << 28);
+    instruction |= ((uint32_t)address << 8);
+    instruction |= ((uint32_t)weight & 0xFF);
+
     return instruction;
 }
 
@@ -448,6 +460,29 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
                     args[2]
                 );
 
+        return 1;
+    }
+
+    //0xD
+    if(strcmp(instruction->name, "SET_QUANT_PARAMS") == 0)
+    {
+        *encoded = encode_set_quant_params
+                (
+                    args[0],
+                    args[1],
+                    args[2]
+                );
+        return 1;
+    }
+
+    //0xE
+    if(strcmp(instruction->name, "LOAD_WEIGHT_BURST") == 0)
+    {
+        *encoded = encode_load_weight_burst
+                (
+                    args[0],
+                    args[1]
+                );
         return 1;
     }
 

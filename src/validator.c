@@ -450,6 +450,53 @@ int validate_instruction(const ParsedInstruction *instruction)
         return 1;
     }
 
+    //0xD
+    if(strcmp(instruction->name, "SET_QUANT_PARAMS") == 0)
+    {
+        if(instruction->arg_count != 3)
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[0], &value) || value < -16384 || value > 16383)
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[1], &value) || value < 0 || value > 31)
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[2], &value) || value < -128 || value > 127)
+        {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    //0xE
+    if(strcmp(instruction->name, "LOAD_WEIGHT_BURST") == 0)
+    {
+        if(instruction->arg_count != 2)
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[0], &value) || value < 0 || value > ((ROWS*COLS) - 1))
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[1], &value) || value < -128 || value > 127)
+        {
+            return 0;
+        }
+
+        return 1;
+    }
+
     //0xF
     if(strcmp(instruction->name, "FLUSH_WEIGHTS") == 0)
     {

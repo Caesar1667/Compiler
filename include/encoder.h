@@ -18,6 +18,7 @@ uint32_t encode_clear_ssm_state(void); //0xA
 uint32_t encode_set_rope_pos(int position); //0xB
 uint32_t encode_load_bn_param(int param_selector, int channel, int param); //0xC
 uint32_t encode_set_quant_params(int scale, int shift, int zero_point); //0xD
+uint32_t encode_load_weight_burst(int address, int weight);
 uint32_t encode_flush_weights(void); //0xF
 
 
