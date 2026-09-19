@@ -45,59 +45,59 @@ int parse_register(const char *token)
 
 int parse_unit_id(const char *token)
 {
-    if(strcmp(token, "RELU") == 0)
+    if(!strcmp(token, "RELU"))
     {
         return UNIT_RELU;
     }
-    if(strcmp(token, "SIGMOID") == 0)
+    if(!strcmp(token, "SIGMOID"))
     {
         return UNIT_SIGMOID;
     }
-    if(strcmp(token, "SELU") == 0)
+    if(!strcmp(token, "SELU"))
     {
         return UNIT_SELU;
     }
-    if(strcmp(token, "RMSNORM") == 0)
+    if(!strcmp(token, "RMSNORM"))
     {
         return UNIT_RMSNORM;
     }
-    if(strcmp(token, "ZSCORE") == 0)
+    if(!strcmp(token, "ZSCORE"))
     {
         return UNIT_ZSCORE;
     }
-    if(strcmp(token, "SOFTMAX") == 0)
+    if(!strcmp(token, "SOFTMAX"))
     {
         return UNIT_SOFTMAX;
     }
-    if(strcmp(token, "ROPE") == 0)
+    if(!strcmp(token, "ROPE"))
     {
         return UNIT_ROPE;
     }
-    if(strcmp(token, "SSM_STEP") == 0)
+    if(!strcmp(token, "SSM_STEP"))
     {
         return UNIT_SSM_STEP;
     }
-    if(strcmp(token, "BATCHNORM") == 0)
+    if(!strcmp(token, "BATCHNORM"))
     {
         return UNIT_BATCHNORM;
     }
-    if(strcmp(token, "SWIGLU") == 0)
+    if(!strcmp(token, "SWIGLU"))
     {
         return UNIT_SWIGLU;
     }
-    if(strcmp(token, "QUANTIZE") == 0)
+    if(!strcmp(token, "QUANTIZE"))
     {
         return UNIT_QUANTIZE;
     }
-    if(strcmp(token, "POOL_MAX") == 0)
+    if(!strcmp(token, "POOL_MAX"))
     {
         return UNIT_POOL_MAX;
     }
-    if(strcmp(token, "POOL_MIN") == 0)
+    if(!strcmp(token, "POOL_MIN"))
     {
         return UNIT_POOL_MIN;
     }
-    if(strcmp(token, "POOL_MEAN") == 0)
+    if(!strcmp(token, "POOL_MEAN"))
     {
         return UNIT_POOL_MEAN;
     }
@@ -105,24 +105,46 @@ int parse_unit_id(const char *token)
     return -1;
 }
 
-int parse_ssm_coef_selector(const char *token)
+int parse_coef_selector(const char *token)
 {
-    if(strcmp(token, "ABAR") == 0)
+    if(!strcmp(token, "Abar"))
     {
-        return 0;
-    }else if(strcmp(token, "BBAR") == 0)
-    {
-        return 1;
-    }else if(strcmp(token, "C") == 0)
-    {
-        return 2;
-    }else if(strcmp(token, "D") == 0)
-    {
-        return 3;
-    }else
-    {
-        return -1;
+        return COEF_ABAR;
     }
+    if(!strcmp(token, "Bbar"))
+    {
+        return COEF_BBAR;
+    }
+    if(!strcmp(token, "C"))
+    {
+        return COEF_C;
+    }
+    if(!strcmp(token, "D"))
+    {
+        return COEF_D;
+    }
+    return -1;
+}
+
+int parse_param_selector(const char *token)
+{
+    if(!strcmp(token, "mean"))
+    {
+        return PARAM_MEAN;
+    }
+    if(!strcmp(token, "inv_std"))
+    {
+        return PARAM_INV_STD;
+    }
+    if(!strcmp(token, "gamma"))
+    {
+        return PARAM_GAMMA;
+    }
+    if(!strcmp(token, "beta"))
+    {
+        return PARAM_BETA;
+    }
+    return -1;
 }
 
 int parse_int(const char *token, int *value)
@@ -355,7 +377,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        int coef_selector = parse_ssm_coef_selector(instruction->args[0]);
+        int coef_selector = parse_coef_selector(instruction->args[0]);
         if(coef_selector == -1)
         {
             return -1;
@@ -385,6 +407,7 @@ int validate_instruction(const ParsedInstruction *instruction)
         return 1;
     }
 
+    //0xB
     if(strcmp(instruction->name, "SET_ROPE_POS") == 0)
     {
         if(instruction->arg_count != 1)
@@ -393,6 +416,33 @@ int validate_instruction(const ParsedInstruction *instruction)
         }
 
         if(!parse_int(instruction->args[0], &value) || value < 0 || value >= N_POS)
+        {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    //0xC
+    if(strcmp(instruction->name, "LOAD_BN_PARAM") == 0)
+    {
+        if(instruction->arg_count != 3)
+        {
+            return 0;
+        }
+
+        int param_selector = parse_param_selector(instruction->args[0]);
+        if(param_selector == -1)
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[1], &value) || value < 0 || value >= COLS)
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[2], &value) || value < -32768 || value > 32767)
         {
             return 0;
         }

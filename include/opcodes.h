@@ -41,6 +41,18 @@
 #define UNIT_POOL_MIN       12
 #define UNIT_POOL_MEAN      13
 
+//Coeffiency Selector
+#define COEF_ABAR           0
+#define COEF_BBAR           1
+#define COEF_C              2
+#define COEF_D              3
+
+//Parameter Selector
+#define PARAM_MEAN          0
+#define PARAM_INV_STD       1
+#define PARAM_GAMMA         2
+#define PARAM_BETA          3
+
 
 #define ROWS                32
 #define COLS                32

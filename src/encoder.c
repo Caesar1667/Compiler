@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "encoder.h"
 #include "opcodes.h"
-#include "validator.h"
 
 uint32_t encode_load_weight(int row, int col, int data)
 {
@@ -147,6 +146,19 @@ uint32_t encode_set_rope_pos(int position)
     instruction |= ((uint32_t)SET_ROPE_POS << 28);
     instruction |= ((uint32_t)position & 0x1F);
     
+    return instruction;
+}
+
+//0xC
+uint32_t encode_load_bn_param(int param_selector, int channel, int param)
+{
+    uint32_t instruction = 0;
+
+    instruction |= ((uint32_t)LOAD_BN_PARAM << 28);
+    instruction |= ((uint32_t)param_selector << 26);
+    instruction |= ((uint32_t)channel << 21);
+    instruction |= ((uint32_t)param & 0xFFFF);
+
     return instruction;
 }
 
@@ -362,11 +374,28 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
 
     if(strcmp(instruction->name, "LOAD_SSM_COEF") == 0)
     {
-        // int coeff_selector = parse_ssm_coef_selector(instruction->args[0]);
+        int coef_selector;
+
+        if(!strcmp(instruction->args[0], "Abar"))
+        {
+            coef_selector = COEF_ABAR;
+        }else if(!strcmp(instruction->args[0], "Bbar"))
+        {
+            coef_selector = COEF_BBAR;
+        }else if(!strcmp(instruction->args[0], "C"))
+        {
+            coef_selector = COEF_C;
+        }else if(!strcmp(instruction->args[0], "D"))
+        {
+            coef_selector = COEF_D;
+        }else
+        {
+            return 0;
+        }
 
         *encoded = encode_load_ssm_coef
                 (
-                    args[0],
+                    coef_selector,
                     args[1],
                     args[2]
                 );
@@ -387,6 +416,38 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
                 (
                     args[0]
                 );
+        return 1;
+    }
+
+    //0xC
+    if(strcmp(instruction->name, "LOAD_BN_PARAM") == 0)
+    {
+        int param_selector;
+
+        if(!strcmp(instruction->args[0], "mean"))
+        {
+            param_selector = PARAM_MEAN;
+        }else if(!strcmp(instruction->args[0], "inv_std"))
+        {
+            param_selector = PARAM_INV_STD;
+        }else if(!strcmp(instruction->args[0], "gamma"))
+        {
+            param_selector = PARAM_GAMMA;
+        }else if(!strcmp(instruction->args[0], "beta"))
+        {
+            param_selector = PARAM_BETA;
+        }else
+        {
+            return 0;
+        }
+
+        *encoded = encode_load_bn_param
+                (
+                    param_selector,
+                    args[1],
+                    args[2]
+                );
+
         return 1;
     }
 
