@@ -356,18 +356,17 @@ int validate_instruction(const ParsedInstruction *instruction)
         }
 
         int coef_selector = parse_ssm_coef_selector(instruction->args[0]);
-        int channel, coefficient;
         if(coef_selector == -1)
         {
             return -1;
         }
 
-        if(!parse_int(instruction->args[1], &channel) || channel < 0 || channel > 31)
+        if(!parse_int(instruction->args[1], &value) || value < 0 || value > 31)
         {
             return -1;
         }
 
-        if(!parse_int(instruction->args[2], &coefficient) || coefficient < -32768 || coefficient > 32767)
+        if(!parse_int(instruction->args[2], &value) || value < -32768 || value > 32767)
         {
             return -1;
         }
@@ -383,6 +382,21 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
         
+        return 1;
+    }
+
+    if(strcmp(instruction->name, "SET_ROPE_POS") == 0)
+    {
+        if(instruction->arg_count != 1)
+        {
+            return 0;
+        }
+
+        if(!parse_int(instruction->args[0], &value) || value < 0 || value >= N_POS)
+        {
+            return 0;
+        }
+
         return 1;
     }
 

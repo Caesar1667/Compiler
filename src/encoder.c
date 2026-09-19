@@ -132,17 +132,22 @@ uint32_t encode_load_ssm_coef(int coef_selector, int channel, int coefficient)
 //0xA
 uint32_t encode_clear_ssm_state(void)
 {
-    uint32_t instruciton = 0;
+    uint32_t instruction = 0;
     
-    instruciton |= ((uint32_t)CLEAR_SSM_STATE << 28);
+    instruction |= ((uint32_t)CLEAR_SSM_STATE << 28);
     
-    return instruciton;
+    return instruction;
 }
 
 //0xB
 uint32_t encode_set_rope_pos(int position)
 {
+    uint32_t instruction = 0;
+
+    instruction |= ((uint32_t)SET_ROPE_POS << 28);
+    instruction |= ((uint32_t)position & 0x1F);
     
+    return instruction;
 }
 
 //0xD
@@ -372,6 +377,16 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
     if(strcmp(instruction->name, "CLEAR_SSM_STATE") == 0)
     {
         *encoded = encode_clear_ssm_state();
+        return 1;
+    }
+
+    //0xB
+    if(strcmp(instruction->name, "SET_ROPE_POS") == 0)
+    {
+        *encoded = encode_set_rope_pos
+                (
+                    args[0]
+                );
         return 1;
     }
 
