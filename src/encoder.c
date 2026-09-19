@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include "encoder.h"
 #include "opcodes.h"
+#include "validator.h"
 
 uint32_t encode_load_weight(int row, int col, int data)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)LOAD_WEIGHT << 28);
-    instruction |= ((uint32_t)row << 16);
-    instruction |= ((uint32_t)col << 8);
+    instruction |= (((uint32_t)LOAD_WEIGHT & 0xF) << 28);
+    instruction |= (((uint32_t)row & 0x1F) << 16);
+    instruction |= (((uint32_t)col & 0x1F) << 8);
     instruction |= ((uint32_t)data & 0xFF);
 
     return instruction;
@@ -19,8 +20,8 @@ uint32_t encode_load_act(int row, int data)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)LOAD_ACT << 28);
-    instruction |= ((uint32_t)row << 16);
+    instruction |= (((uint32_t)LOAD_ACT & 0xF) << 28);
+    instruction |= (((uint32_t)row & 0x1F) << 16);
     instruction |= ((uint32_t)data & 0xFF);
 
     return instruction;
@@ -30,7 +31,7 @@ uint32_t encode_run(int clear_acc)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)RUN << 28);
+    instruction |= (((uint32_t)RUN & 0xF) << 28);
 
     if(clear_acc)
     {
@@ -44,7 +45,7 @@ uint32_t encode_read_results(void)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)READ_RESULTS << 28);
+    instruction |= (((uint32_t)READ_RESULTS & 0xF) << 28);
 
     return instruction;
 }
@@ -54,7 +55,7 @@ uint32_t encode_set_mode(int add_sel)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)SET_MODE << 28);
+    instruction |= (((uint32_t)SET_MODE & 0xF) << 28);
     instruction |= ((uint32_t)add_sel & 0x1);
 
     return instruction;
@@ -65,13 +66,13 @@ uint32_t encode_pipeline_instr(int opcode, int dst_reg, int src_reg, int src2_re
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)opcode << 13);
-    instruction |= ((uint32_t)dst_reg << 10);
-    instruction |= ((uint32_t)src_reg << 7);
-    instruction |= ((uint32_t)src2_reg << 4);
-    instruction |= ((uint32_t)unit_id);
+    instruction |= (((uint32_t)opcode & 0xF) << 13);
+    instruction |= (((uint32_t)dst_reg & 0x7) << 10);
+    instruction |= (((uint32_t)src_reg & 0x7) << 7);
+    instruction |= (((uint32_t)src2_reg & 0x7) << 4);
+    instruction |= ((uint32_t)unit_id & 0xF);
 
-    return instruction;
+    return instruction & 0x1FFFF;
 }
 
 uint32_t encode_load_instr(int address, int opcode, int dst_reg, int src_reg, int src2_reg, int unit_id)
@@ -86,9 +87,9 @@ uint32_t encode_load_instr(int address, int opcode, int dst_reg, int src_reg, in
                             unit_id
                         );
 
-    instruction |= ((uint32_t)LOAD_INSTR << 28);
-    instruction |= ((uint32_t)address << 17);
-    instruction |= pipeline;
+    instruction |= (((uint32_t)LOAD_INSTR & 0xF) << 28);
+    instruction |= (((uint32_t)address & 0x3F) << 17);
+    instruction |= (pipeline & 0x1FFFF);
     
     return instruction;
 }
@@ -109,8 +110,8 @@ uint32_t encode_set_rescale(int shift)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)SET_RESCALE << 28);
-    instruction |= ((uint32_t)shift & 0x1F);
+    instruction |= (((uint32_t)SET_RESCALE & 0xF) << 28);
+    instruction |= (((uint32_t)shift & 0x1F) & 0x1F);
 
     return instruction;
 }
@@ -120,10 +121,10 @@ uint32_t encode_load_ssm_coef(int coef_selector, int channel, int coefficient)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)LOAD_SSM_COEF << 28);
-    instruction |= ((uint32_t)coef_selector << 26);
-    instruction |= ((uint32_t)channel << 21);
-    instruction |= ((uint32_t)coefficient & 0xFFFFF);
+    instruction |= (((uint32_t)LOAD_SSM_COEF & 0xF) << 28);
+    instruction |= (((uint32_t)coef_selector & 0x3) << 26);
+    instruction |= (((uint32_t)channel & 0x1F) << 21);
+    instruction |= ((uint32_t)coefficient & 0xFFFF);
 
     return instruction;
 }
@@ -133,7 +134,7 @@ uint32_t encode_clear_ssm_state(void)
 {
     uint32_t instruction = 0;
     
-    instruction |= ((uint32_t)CLEAR_SSM_STATE << 28);
+    instruction |= (((uint32_t)CLEAR_SSM_STATE & 0xF) << 28);
     
     return instruction;
 }
@@ -143,7 +144,7 @@ uint32_t encode_set_rope_pos(int position)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)SET_ROPE_POS << 28);
+    instruction |= (((uint32_t)SET_ROPE_POS & 0xF) << 28);
     instruction |= ((uint32_t)position & 0x1F);
     
     return instruction;
@@ -154,9 +155,9 @@ uint32_t encode_load_bn_param(int param_selector, int channel, int param)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)LOAD_BN_PARAM << 28);
-    instruction |= ((uint32_t)param_selector << 26);
-    instruction |= ((uint32_t)channel << 21);
+    instruction |= (((uint32_t)LOAD_BN_PARAM & 0xF) << 28);
+    instruction |= (((uint32_t)param_selector & 0x3) << 26);
+    instruction |= (((uint32_t)channel & 0x1F) << 21);
     instruction |= ((uint32_t)param & 0xFFFF);
 
     return instruction;
@@ -167,9 +168,9 @@ uint32_t encode_set_quant_params(int scale, int shift, int zero_point)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)SET_QUANT_PARAMS << 28);
-    instruction |= ((uint32_t)scale << 13);
-    instruction |= ((uint32_t)shift << 8);
+    instruction |= (((uint32_t)SET_QUANT_PARAMS & 0xF) << 28);
+    instruction |= (((uint32_t)scale & 0x7FFF) << 13);
+    instruction |= (((uint32_t)shift & 0x1F) << 8);
     instruction |= ((uint32_t)zero_point & 0xFF);
     
     return instruction;
@@ -180,8 +181,8 @@ uint32_t encode_load_weight_burst(int address, int weight)
 {
     uint32_t instruction = 0;
 
-    instruction |= ((uint32_t)LOAD_WEIGHT_BURST << 28);
-    instruction |= ((uint32_t)address << 8);
+    instruction |= (((uint32_t)LOAD_WEIGHT_BURST & 0xF) << 28);
+    instruction |= (((uint32_t)address & 0x3FF) << 8); 
     instruction |= ((uint32_t)weight & 0xFF);
 
     return instruction;
@@ -190,11 +191,11 @@ uint32_t encode_load_weight_burst(int address, int weight)
 //0xF
 uint32_t encode_flush_weights(void)
 {
-    uint32_t instruciton = 0;
+    uint32_t instruction = 0;
 
-    instruciton |= ((uint32_t)FLUSH_WEIGHTS << 28);
+    instruction |= (((uint32_t)FLUSH_WEIGHTS & 0xF) << 28);
     
-    return instruciton;
+    return instruction;
 }
 
 int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
@@ -209,7 +210,7 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
     for(i = 0; i < instruction->arg_count; i++)
     {
         char *end;
-        long value = strtol(instruction->args[i], &end, 10);
+        long value = strtol(instruction->args[i], &end, 0);
 
         if(*end != '\0')
         {
@@ -220,7 +221,7 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
         }
     }
 
-    if(strcmp(instruction->name, "LOAD_WEIGHT") == 0)
+    if(!strcmp(instruction->name, "LOAD_WEIGHT"))
     {
         *encoded = encode_load_weight
                 (
@@ -231,7 +232,7 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
         return 1;
     }
 
-    if(strcmp(instruction->name, "LOAD_ACT") == 0)
+    if(!strcmp(instruction->name, "LOAD_ACT"))
     {
         *encoded = encode_load_act
                 (
@@ -242,7 +243,7 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
         return 1;
     }
 
-    if(strcmp(instruction->name, "RUN") == 0)
+    if(!strcmp(instruction->name, "RUN"))
     {
         *encoded = encode_run
                 (
@@ -252,13 +253,13 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
         return 1;
     }
 
-    if(strcmp(instruction->name, "READ_RESULTS") == 0)
+    if(!strcmp(instruction->name, "READ_RESULTS"))
     {
         *encoded = encode_read_results();
         return 1;
     }
 
-    if(strcmp(instruction->name, "SET_MODE") == 0)
+    if(!strcmp(instruction->name, "SET_MODE"))
     {
         *encoded = encode_set_mode
                 (
@@ -268,99 +269,55 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
     }
 
     //0x6
-    if(strcmp(instruction->name, "LOAD_INSTR") == 0)
+    if(!strcmp(instruction->name, "LOAD_INSTR"))
     {
-        int address, opcode;
-        int dst = 0;
-        int src = 0;
-        int src2 = 0;
-        int unit = 0;
-
-        char *end;
-        long value = strtol(instruction->args[0], &end, 10);
-        if(*end != '\0')
+        int address = args[0];
+        int opcode = parse_pipeline(instruction->args[1]);
+        int dst = 0, src = 0, src2 = 0, unit_id = 0;
+        if(opcode == -1)
         {
             return 0;
         }
 
-        address = (int)value;
-
-        if(strcmp(instruction->args[1], "NOP") == 0)
+        if(opcode == PIPE_NOP || opcode == PIPE_HALT)
         {
-            opcode = PIPE_NOP;
-        }else if(strcmp(instruction->args[1], "COMPUTE") == 0)
+            // return 1;
+        }else if(opcode == PIPE_STORE)
         {
-            opcode = PIPE_COMPUTE;
-            dst = instruction->args[2][1] - '0';
-            src = instruction->args[3][1] - '0';
-
-            if(strcmp(instruction->args[4], "RELU") == 0)
+            dst = parse_register(instruction->args[2]);
+            src = parse_register(instruction->args[3]);
+        }else if(opcode == PIPE_ADD)
+        {
+            dst = parse_register(instruction->args[2]);
+            src = parse_register(instruction->args[3]);
+            src2 = parse_register(instruction->args[4]);
+        }else if(opcode == PIPE_COMPUTE)
+        {
+            if(instruction->arg_count == 5)
             {
-                unit = UNIT_RELU;
-            }else if(strcmp(instruction->args[4], "SIGMOID") == 0)
+                dst = parse_register(instruction->args[2]);
+                src = parse_register(instruction->args[3]);
+                unit_id = parse_unit_id(instruction->args[4]);
+            }else if(instruction->arg_count == 6)
             {
-                unit = UNIT_SIGMOID;
-            }else if(strcmp(instruction->args[4], "SELU") == 0)
-            {
-                unit = UNIT_SELU;
-            }else if(strcmp(instruction->args[4], "RMSNORM") == 0)
-            {
-                unit = UNIT_RMSNORM;
-            }else if(strcmp(instruction->args[4], "ZSCORE") == 0)
-            {
-                unit = UNIT_ZSCORE;
-            }else if(strcmp(instruction->args[4], "SOFTMAX") == 0)
-            {
-                unit = UNIT_SOFTMAX;
-            }else if(strcmp(instruction->args[4], "ROPE") == 0)
-            {
-                unit = UNIT_ROPE;
-            }else if(strcmp(instruction->args[4], "SSM_STEP") == 0)
-            {
-                unit = UNIT_SSM_STEP;
-            }else if(strcmp(instruction->args[4], "BATCHNORM") == 0)
-            {
-                unit = UNIT_BATCHNORM;
-            }else if(strcmp(instruction->args[4], "SWIGLU") == 0)
-            {
-                unit = UNIT_SWIGLU;
-            }else if(strcmp(instruction->args[4], "QUANTIZE") == 0)
-            {
-                unit = UNIT_QUANTIZE;
-            }else if(strcmp(instruction->args[4], "POOL_MAX") == 0)
-            {
-                unit = UNIT_POOL_MAX;
-            }else if(strcmp(instruction->args[4], "POOL_MIN") == 0)
-            {
-                unit = UNIT_POOL_MIN;
-            }else if(strcmp(instruction->args[4], "POOL_MEAN") == 0)
-            {
-                unit = UNIT_POOL_MEAN;
+                dst = parse_register(instruction->args[2]);
+                src = parse_register(instruction->args[3]);
+                src2 = parse_register(instruction->args[4]);
+                unit_id = parse_unit_id(instruction->args[5]);
             }else
             {
                 return 0;
             }
-        }else if(strcmp(instruction->args[1], "STORE") == 0)
-        {
-            opcode = PIPE_STORE;
-            dst = instruction->args[2][1] - '0';
-            src = instruction->args[3][1] - '0';
-        }else if(strcmp(instruction->args[1], "ADD") == 0)
-        {
-            opcode = PIPE_ADD;
-            dst = instruction->args[2][1] - '0';
-            src = instruction->args[3][1] - '0';
-            src2 = instruction->args[4][1] - '0';
-        }else if(strcmp(instruction->args[1], "HALT") == 0)
-        {
-            opcode = PIPE_HALT;
-        }else
-        {
-            return 0;
         }
-
-        *encoded = encode_load_instr(address, opcode, dst, src, src2, unit);
-
+        *encoded = encode_load_instr
+                (
+                    address,
+                    opcode,
+                    dst,
+                    src,
+                    src2,
+                    unit_id
+                );
         return 1;
     }
 
@@ -384,32 +341,18 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
         return 1;
     }
 
+    //0x9
     if(strcmp(instruction->name, "LOAD_SSM_COEF") == 0)
     {
-        int coef_selector;
-
-        if(!strcmp(instruction->args[0], "Abar"))
-        {
-            coef_selector = COEF_ABAR;
-        }else if(!strcmp(instruction->args[0], "Bbar"))
-        {
-            coef_selector = COEF_BBAR;
-        }else if(!strcmp(instruction->args[0], "C"))
-        {
-            coef_selector = COEF_C;
-        }else if(!strcmp(instruction->args[0], "D"))
-        {
-            coef_selector = COEF_D;
-        }else
-        {
-            return 0;
-        }
+        int coef_selector = parse_coef_selector(instruction->args[0] + 6);
+        int channel = (int)strtol(instruction->args[1] + 3, NULL, 0);
+        int coefficient = (int)strtol(instruction->args[2], NULL, 0);
 
         *encoded = encode_load_ssm_coef
                 (
                     coef_selector,
-                    args[1],
-                    args[2]
+                    channel,
+                    coefficient
                 );
         return 1;
     }
@@ -434,30 +377,15 @@ int encode_instruction(const ParsedInstruction *instruction, uint32_t *encoded)
     //0xC
     if(strcmp(instruction->name, "LOAD_BN_PARAM") == 0)
     {
-        int param_selector;
-
-        if(!strcmp(instruction->args[0], "mean"))
-        {
-            param_selector = PARAM_MEAN;
-        }else if(!strcmp(instruction->args[0], "inv_std"))
-        {
-            param_selector = PARAM_INV_STD;
-        }else if(!strcmp(instruction->args[0], "gamma"))
-        {
-            param_selector = PARAM_GAMMA;
-        }else if(!strcmp(instruction->args[0], "beta"))
-        {
-            param_selector = PARAM_BETA;
-        }else
-        {
-            return 0;
-        }
+        int param_selector = parse_param_selector(instruction->args[0] + 6);
+        int channel = (int)strtol(instruction->args[1] + 3, NULL, 0);
+        int param = (int)strtol(instruction->args[2], NULL, 0);
 
         *encoded = encode_load_bn_param
                 (
                     param_selector,
-                    args[1],
-                    args[2]
+                    channel,
+                    param
                 );
 
         return 1;
