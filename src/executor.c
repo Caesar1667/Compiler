@@ -4,7 +4,7 @@
 #include <string.h>
 #include <libusb-1.0/libusb.h>
 #include "usbproc.h"
-#incldue "opcodes.h"
+#include "opcodes.h"
 
 int main(int argc, char *argv[])
 {
@@ -82,5 +82,59 @@ int main(int argc, char *argv[])
         libusb_detach_kernel_driver(dev_handle, 0);
     }
 
-    if
+    if(libusb_claim_interface(dev_handle, 0) < 0)
+    {
+        fprintf(stderr, "Error: Failed to claim interface 0\n");
+        libusb_close(dev_handle);
+        libusb_exit(ctx);
+        free(send_buffer);
+        return 1;
+    }
+
+    printf("Connected to FPGA. Sending %ld instructions (%ld bytes)...\n", file_size / 4, file_size);
+
+    int actual_length = 0;
+    int r = libusb_bulk_transfer(dev_handle, ENDPOINT_OUT, send_buffer, (int)file_size, &actual_length, TIMEOUT_MS);
+    if(r < 0 || actual_length != file_size)
+    {
+        fprintf(stderr, "Error sending data: libusb code %d, actual sent: %d\n", r, actual_length);
+    }else
+    {
+        printf("Transmission complete (%d bytes sent).\n", actual_length);
+    }
+
+    if(expect_readback && r == 0)
+    {
+        printf("Reading back %d result words (128 bytes) from FPGA...\n", COLS);
+        
+        int rx_size = COLS * 4;
+        uint8_t rx_buffer[128];
+        actual_length = 0;
+
+        r = libusb_bulk_transfer(dev_handle, ENDPOINT_IN, rx_buffer, rx_size, &actual_length, TIMEOUT_MS);
+        if(r < 0)
+        {
+            fprintf(stderr, "Error receiving results: libusb code %d\n", r);
+        }else
+        {
+            printf("Received %d bytes. Unpacked Channel Outputs:\n", actual_length);
+            for(int i = 0; i < actual_length; i += 4)
+            {
+                uint32_t raw_word = ((uint32_t)rx_buffer[i]     << 24) |
+                                    ((uint32_t)rx_buffer[i + 1] << 16) |
+                                    ((uint32_t)rx_buffer[i + 2] << 8)  |
+                                    ((uint32_t)rx_buffer[i + 3]);
+
+                int32_t signed_value = (int32_t)raw_word;
+                printf("    Channel [%2d]: Raw = 0x%08X (%7d) | Q8.8 = %8.4f\n", i / 4, raw_word, signed_value, (double)signed_value / 256.0);
+            }
+        }
+    }
+
+    libusb_release_interface(dev_handle, 0);
+    libusb_close(dev_handle);
+    libusb_exit(ctx);
+    free(send_buffer);
+
+    return 0;
 }
