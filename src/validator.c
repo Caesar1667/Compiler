@@ -5,23 +5,23 @@
 
 int parse_pipeline(const char *token)
 {
-    if(strcmp(token, "NOP") == 0)
+    if(!strcmp(token, "NOP"))
     {
         return PIPE_NOP;
     }
-    if(strcmp(token, "COMPUTE") == 0)
+    if(!strcmp(token, "COMPUTE"))
     {
         return PIPE_COMPUTE;
     }
-    if(strcmp(token, "STORE") == 0)
+    if(!strcmp(token, "STORE"))
     {
         return PIPE_STORE;
     }
-    if(strcmp(token, "ADD") == 0)
+    if(!strcmp(token, "ADD"))
     {
         return PIPE_ADD;
     }
-    if(strcmp(token, "HALT") == 0)
+    if(!strcmp(token, "HALT"))
     {
         return PIPE_HALT;
     }
@@ -151,7 +151,13 @@ int parse_int(const char *token, int *value)
 {
     char *end;
     long result;
-    result = strtol(token, &end, 10);
+
+    if(token == NULL || value == NULL)
+    {
+        return 0;
+    }
+
+    result = strtol(token, &end, 0);
     if(*end != '\0')
     {
         return 0;
@@ -170,7 +176,7 @@ int validate_instruction(const ParsedInstruction *instruction)
         return 0;
     }
 
-    if(strcmp(instruction->name, "LOAD_WEIGHT") == 0)
+    if(!strcmp(instruction->name, "LOAD_WEIGHT"))
     {
         if(instruction->arg_count != 3)
         {
@@ -185,7 +191,7 @@ int validate_instruction(const ParsedInstruction *instruction)
         {
             return 0;
         }
-        if(!parse_int(instruction->args[2], &value) || value < -128 || value >= 127)
+        if(!parse_int(instruction->args[2], &value) || value < -128 || value > 127)
         {
             return 0;
         }
@@ -193,7 +199,7 @@ int validate_instruction(const ParsedInstruction *instruction)
         return 1;
     }
 
-    if(strcmp(instruction->name, "LOAD_ACT") == 0)
+    if(!strcmp(instruction->name, "LOAD_ACT"))
     {
         if(instruction->arg_count != 2)
         {
@@ -205,7 +211,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(!parse_int(instruction->args[1], &value) || value < -128 || value >= 127) 
+        if(!parse_int(instruction->args[1], &value) || value < -128 || value > 127) 
         {
             return 0;
         }
@@ -213,7 +219,7 @@ int validate_instruction(const ParsedInstruction *instruction)
         return 1;
     }
 
-    if(strcmp(instruction->name, "RUN") == 0)
+    if(!strcmp(instruction->name, "RUN"))
     {
         if(instruction->arg_count != 1)
         {
@@ -227,17 +233,7 @@ int validate_instruction(const ParsedInstruction *instruction)
         return 1;
     }
     
-    if(strcmp(instruction->name, "READ_RESULTS") == 0)
-    {
-        if(instruction->arg_count !=  0)
-        {
-            return 0;
-        }
-        
-        return 1;
-    }
-    
-    if(strcmp(instruction->name, "SET_MODE") == 0)
+    if(!strcmp(instruction->name, "SET_MODE"))
     {
         if(instruction->arg_count != 1)
         {
@@ -252,7 +248,7 @@ int validate_instruction(const ParsedInstruction *instruction)
     }
 
     //0x6
-    if(strcmp(instruction->name, "LOAD_INSTR") == 0)
+    if(!strcmp(instruction->name, "LOAD_INSTR"))
     {
         int opcode, dst, src, src2, unit;
 
@@ -274,30 +270,37 @@ int validate_instruction(const ParsedInstruction *instruction)
 
         if(opcode == PIPE_NOP || opcode == PIPE_HALT)
         {
-            if(instruction->arg_count != 2)
-            {
-                return 0;
-            }
-            return 1;
+            return (instruction->arg_count == 2);
         }
 
         if(opcode == PIPE_COMPUTE)
         {
-            if(instruction->arg_count != 5)
+            if(instruction->arg_count == 5)
             {
-                return 0;
-            }
+                dst = parse_register(instruction->args[2]);
+                src = parse_register(instruction->args[3]);
+                unit = parse_unit_id(instruction->args[4]);
 
-            dst = parse_register(instruction->args[2]);
-            src = parse_register(instruction->args[3]);
-            unit = parse_unit_id(instruction->args[4]);
+                if(dst == -1 || src == -1 || unit == -1 || unit == UNIT_SWIGLU)
+                {
+                    return 0;
+                }
 
-            if(dst == -1 || src == -1 || unit == -1)
+                return 1;
+            }else if(instruction->arg_count == 6)
             {
-                return 0;
-            }
+                dst = parse_register(instruction->args[2]);
+                src = parse_register(instruction->args[3]);
+                src2 = parse_register(instruction->args[4]);
+                unit = parse_unit_id(instruction->args[5]);
 
-            return 1;
+                if(dst == -1 || src == -1 || src2 == -1 || unit != UNIT_SWIGLU)
+                {
+                    return 0;
+                }
+                return 1;
+            }
+            return 0;
         }
 
         if(opcode == PIPE_STORE)
@@ -306,10 +309,8 @@ int validate_instruction(const ParsedInstruction *instruction)
             {
                 return 0;
             }
-
             dst = parse_register(instruction->args[2]);
             src = parse_register(instruction->args[3]);
-
             if(dst == -1 || src == -1)
             {
                 return 0;
@@ -323,19 +324,14 @@ int validate_instruction(const ParsedInstruction *instruction)
             {
                 return 0;
             }
-
             dst = parse_register(instruction->args[2]);
             src = parse_register(instruction->args[3]);
-            src2 = parse_register(instruction->args[4]);
-
-            if(dst == -1 || src == -1 || src2 == -1)
+            if(dst == -1 || src == -1)
             {
                 return 0;
             }
-
             return 1;
         }
-        return 0;
     }
 
     //0x7
@@ -346,7 +342,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(!parse_int(instruction->args[0], &value) || (value < 0 || value > 31))
+        if(!parse_int(instruction->args[0], &value) || value < 0 || value > PROG_DEPTH)
         {
             return 0;
         }
@@ -377,20 +373,27 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        int coef_selector = parse_coef_selector(instruction->args[0]);
-        if(coef_selector == -1)
+        if(strncmp(instruction->args[0], "which=", 6) != 0)
         {
-            return -1;
+            return 0;
+        }
+        if(parse_coef_selector(instruction->args[0] + 6) == -1)
+        {
+            return 0;
         }
 
-        if(!parse_int(instruction->args[1], &value) || value < 0 || value > 31)
+        if(strncmp(instruction->args[1], "ch=", 3) != 0)
         {
-            return -1;
+            return 0;
+        }
+        if(!parse_int(instruction->args[1] + 3, &value) || value < 0 || value >= COLS)
+        {
+            return 0;
         }
 
         if(!parse_int(instruction->args[2], &value) || value < -32768 || value > 32767)
         {
-            return -1;
+            return 0;
         }
 
         return 1;
@@ -399,12 +402,7 @@ int validate_instruction(const ParsedInstruction *instruction)
     //0xA
     if(strcmp(instruction->name, "CLEAR_SSM_STATE") == 0)
     {
-        if(instruction->arg_count !=  0)
-        {
-            return 0;
-        }
-        
-        return 1;
+        return (instruction->arg_count == 0);
     }
 
     //0xB
@@ -431,13 +429,20 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        int param_selector = parse_param_selector(instruction->args[0]);
-        if(param_selector == -1)
+        if(strncmp(instruction->args[0], "which=", 6) != 0)
+        {
+            return 0;
+        }
+        if(parse_param_selector(instruction->args[0] + 6) == -1)
         {
             return 0;
         }
 
-        if(!parse_int(instruction->args[1], &value) || value < 0 || value >= COLS)
+        if(strncmp(instruction->args[1], "ch=", 3) != 0)
+        {
+            return 0;
+        }
+        if(!parse_int(instruction->args[1] + 3, &value) || value < 0 || value >= COLS)
         {
             return 0;
         }
@@ -484,7 +489,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(!parse_int(instruction->args[0], &value) || value < 0 || value > ((ROWS*COLS) - 1))
+        if(!parse_int(instruction->args[0], &value) || value < 0 || value >= ((ROWS*COLS) - 1))
         {
             return 0;
         }
@@ -500,12 +505,7 @@ int validate_instruction(const ParsedInstruction *instruction)
     //0xF
     if(strcmp(instruction->name, "FLUSH_WEIGHTS") == 0)
     {
-        if(instruction->arg_count !=  0)
-        {
-            return 0;
-        }
-        
-        return 1;
+        return (instruction->arg_count == 0);
     }
 
     return 0;

@@ -2,7 +2,7 @@
 #define OPPARSER_H
 
 #define MAX_INSTRUCTION_NAME 32
-#define MAX_ARGS 6
+#define MAX_ARGS 8
 #define MAX_ARG_LENGTH 32
 
 typedef struct 
