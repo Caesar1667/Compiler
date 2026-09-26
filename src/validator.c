@@ -326,7 +326,8 @@ int validate_instruction(const ParsedInstruction *instruction)
             }
             dst = parse_register(instruction->args[2]);
             src = parse_register(instruction->args[3]);
-            if(dst == -1 || src == -1)
+            src2 = parse_register(instruction->args[4]);
+            if(dst == -1 || src == -1 || src2 == -1)
             {
                 return 0;
             }
@@ -489,7 +490,7 @@ int validate_instruction(const ParsedInstruction *instruction)
             return 0;
         }
 
-        if(!parse_int(instruction->args[0], &value) || value < 0 || value >= ((ROWS*COLS) - 1))
+        if(!parse_int(instruction->args[0], &value) || value < 0 || value >= (ROWS*COLS))
         {
             return 0;
         }

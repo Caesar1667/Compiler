@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: Device not found (VID: 0x%04X, PID: 0x%04X)\n", USB_VENDOR_ID, USB_PRODUCT_ID);
         libusb_exit(ctx);
         free(send_buffer);
-        free(send_buffer);
         return 1;
     }
 
