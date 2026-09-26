@@ -8,10 +8,24 @@
 
 int main(int argc, char *argv[])
 {
-    if(argc != 2)
+    uint16_t vid = USB_VENDOR_ID;
+    uint16_t pid = USB_PRODUCT_ID;
+
+    if(argc < 2 || argc > 4)
     {
-        fprintf(stderr, "Usage: %s <program.bin>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <program.bin> [vid_hex] [pid_hex]\n", argv[0]);
+        fprintf(stderr, "Example: %s test_all.bin 0403 6010\n", argv[0]);
         return 1;
+    }
+
+    if(argc >= 3)
+    {
+        vid = (uint16_t)strtoul(argv[2], NULL, 16);
+    }
+
+    if(argc >= 4)
+    {
+        pid = (uint16_t)strtoul(argv[3], NULL, 16);
     }
 
     FILE *fp = fopen(argv[1], "rb");
@@ -20,6 +34,7 @@ int main(int argc, char *argv[])
         perror("Failed to open binary file");
         return 1;
     }
+
 
     fseek(fp, 0, SEEK_END);
     long file_size = ftell(fp);
